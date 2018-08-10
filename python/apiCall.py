@@ -43,7 +43,7 @@ def MakeAPICall(InURL,AccToken, RefToken):
 		print_json('error', err, json.loads(HTTPErrorMessage))
 		#See what the error was
 		if (err.code == 401) and (HTTPErrorMessage.find("expired_token") > 0):
-			GetNewAccessToken(RefToken)
+			GetNewAccessToken(RefToken, )
 			print_json('status', 'Can run again')
 			return False, True, TokenRefreshedOK
 		if (err.code == 401) and (HTTPErrorMessage.find("invalid_token") > 0):
