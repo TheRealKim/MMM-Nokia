@@ -52,5 +52,12 @@ def GetNewAccessToken(RefToken):
 		print_json('error', 'Error getting new access token', err)
 		sys.exit(1)
 
-refresh_token = ReadTokens()[1]
-GetNewAccessToken(refresh_token)
+
+
+
+#############
+#For testing#
+#############
+
+#refresh_token = ReadTokens()[1]
+#GetNewAccessToken(refresh_token)
