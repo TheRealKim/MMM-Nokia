@@ -2,19 +2,13 @@
 #I adapted this code from Geek Dad:
 #(http://pdwhomeautomation.blogspot.co.uk/2015/03/using-fitbit-api-on-raspberry-pi-with.html)
 import base64
-import urllib 
+from urllib import urlencode 
 import urllib2
 import json
 import os
 import sys
 
 from iniHandler import print_json, ReadCredentials, WriteTokens, ReadTokens
-
-#Get credentials from file
-client_id, client_secret = ReadCredentials()
-
-#URL to refresh the access token
-TokenURL = "https://account.health.nokia.com/oauth2/token"
 
 #Some reponces defining API error handling responses
 Authorised = "Tokens valid"
@@ -24,35 +18,31 @@ ErrorInAPI = "Error when making API call that I couldn't handle"
 
 #Make a HTTP POST to get new tokens
 def GetNewAccessToken(RefToken):
+
+	TokenURL = "https://account.health.nokia.com/oauth2/token"
+	client_id, client_secret = ReadCredentials()
 	print_json('status','Getting a new access token')
 	
-	#Form the data payload
-	BodyText = {'grant_type' : 'refresh_token',
-				'refresh_token' : RefToken}
-	#URL Encode it
-	BodyURLEncoded = urllib.urlencode(BodyText)
-	#print "Using this as the body when getting access token >>" + BodyURLEncoded
+	#Start forming the request
+
+	refresh_token_params = {
+		'grant_type': 'refresh_token',
+		'client_id': client_id,
+		'client_secret': client_secret,
+		'refresh_token': RefToken	
+    }
 	
-	#Start the request
-	tokenreq = urllib2.Request(TokenURL,BodyURLEncoded)
-	
-	#Add the headers, first we base64 encode the client id and client secret with a : inbetween and create the authorisation header
-	tokenreq.add_header('Authorization', 'Basic ' + base64.b64encode(client_id + ":" + client_secret))
-	tokenreq.add_header('Content-Type', 'application/x-www-form-urlencoded')
+	print_json('status', 'Refreshing tokens')
 	
 	#Fire off the request
 	try:
-		tokenresponse = urllib2.urlopen(tokenreq)
-		
-		#See what we got back. If it's this part of the code it was OK
-		FullResponse = tokenresponse.read()
-		
-		#Use JSON to extract tokens
-		ResponseJSON = json.loads(FullResponse)
+		tokenresponse = urllib2.urlopen(TokenURL, data=urlencode(refresh_token_params))
+		assert tokenresponse.code == 200
+		resp_content = json.loads(tokenresponse.read())
 		
 		#Read the access token as a string
-		NewAccessToken = str(ResponseJSON['access_token'])
-		NewRefreshToken = str(ResponseJSON['refresh_token'])
+		NewAccessToken = resp_content['access_token']
+		NewRefreshToken =resp_content['refresh_token']
 		#print ResponseJSON['expires_at']
 		#Write the access token to the ini file
 		WriteTokens(NewAccessToken,NewRefreshToken)
@@ -61,3 +51,13 @@ def GetNewAccessToken(RefToken):
 	except urllib2.URLError as err:
 		print_json('error', 'Error getting new access token', err)
 		sys.exit(1)
+
+
+
+
+#############
+#For testing#
+#############
+
+#refresh_token = ReadTokens()[1]
+#GetNewAccessToken(refresh_token)
