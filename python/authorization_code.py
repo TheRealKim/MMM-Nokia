@@ -1,6 +1,6 @@
 """
 Example of OAuth 2.0 process with web server.
-API of facebook is used: https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
+API of Nokia is used
 """
 
 import webbrowser
@@ -15,6 +15,7 @@ import threading
 import time
 from multiprocessing import Process, Value, Manager
 import configparser, os
+from iniHandler import ReadCredentials, WriteTokens
 
 config = configparser.ConfigParser()
 
@@ -22,9 +23,9 @@ config = configparser.ConfigParser()
 # STEP 1: user confirmation
 ###########################
 
-CLIENT_KEY = '0249b9cdea0e3d37ddcbf08bc752a43c04cbfdc0d7dcdd46ebf7bbef3ebdb4ba'
-CLIENT_SECRET = '0e734dd2f4d57a5ce86f6b038df5bc5cb8d5cd0978b291f4b5f53bf0756a0738'
-    # host must be set explicitly in facebook app configuration, otherwise forbidden
+CLIENT_KEY, CLIENT_SECRET = ReadCredentials()
+
+    # host must be set explicitly in nokia developers partner app, otherwise rejected
 CALLBACK_URL = "http://127.0.0.1:8080/callback"
 
 AUTHORIZE_URL = 'https://account.health.nokia.com/oauth2_user/authorize2'
@@ -114,9 +115,12 @@ print "expires_in", expires_in
 print "refresh_token", refresh_token
 print "user_id", user_id
 
+WriteTokens(access_token,refresh_token)
+
 ####################################
 # STEP 4: request to server resource
 ####################################
+
 api_params = {
     'access_token': access_token,
 }
